@@ -1,0 +1,39 @@
+main {
+    padding: 40px;
+    background-color: rgb(161, 161, 161);
+    border: solid 1px rgb(24, 24, 24);
+    text-align: center;
+    max-width: 350px;
+}
+.display {
+    border: solid 1px rgb(0, 0, 0);
+    height: 100px;
+    background-color: white;
+    border-radius: 5px;
+    margin-bottom: 10px !important;
+    padding: 5px;
+    overflow: auto;
+}
+.display, .calcButtons {width: 90%; margin: auto;}
+.display {text-align: start;}
+.display div {word-wrap: break-word;}
+.displayAnswer {font-size: 50px;}
+.calcButtons div{
+    display: flex;
+    flex-direction: row;
+}
+button {
+    padding: 5px 8px;
+}
+.calcTopControls button {
+    flex-grow: 1;
+}
+.calcControl {font-size: 1.5rem;}
+.calcNumbersGroup, .calcOperators{
+    flex-wrap: wrap;
+}
+.calcNumber, .operator {flex-grow: 1;
+    min-width: 40px;
+}
+.calcBottomControls {justify-content: end;}
+.calcBottomControls button {width: 50%;}
