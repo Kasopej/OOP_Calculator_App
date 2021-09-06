@@ -17,7 +17,7 @@ main {
 .display, .calcButtons {width: 90%; margin: auto;}
 .display {text-align: start;}
 .display div {word-wrap: break-word;}
-.displayAnswer {font-size: 50px;}
+#displayAnswer {font-size: 50px;}
 .calcButtons div{
     display: flex;
     flex-direction: row;
@@ -35,5 +35,5 @@ button {
 .calcNumber, .operator {flex-grow: 1;
     min-width: 40px;
 }
-.calcBottomControls {justify-content: end;}
+.calcBottomControls {justify-content: start;}
 .calcBottomControls button {width: 50%;}
