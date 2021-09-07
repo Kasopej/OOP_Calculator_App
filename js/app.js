@@ -12,6 +12,7 @@ calculator.display.resultScreen = document.getElementById('displayAnswer');
 calculator.currentInput = '0';
 calculator.result = 0;
 calculator.formattedOperand = '';
+calculator.formattedOldOperand = '';
 calculator.operations = {};
 calculator.basicOperators = ['+', '-', '^', 'x', '\u00F7', '\u221A'];
 calculator.paranthesis = ['(', ')'];
@@ -31,6 +32,7 @@ calculator.addEventListeners = function(){
         console.log('Adding operator button event listeners' + index);
         operatorBtn.addEventListener('click', calculator.operations.addOperator.bind(calculator));
     });
+    this.controls.backSpaceButton.addEventListener('click', calculator.operations.backSpace.bind(calculator))
 };
 
 
@@ -100,7 +102,7 @@ calculator.operations.addOperator = function(operatorEvent) {
     //this.operations.displayResult(this.result);
 } // End of add operators method
 
-calculator.operations.processOperands = function(operand) {
+calculator.operations.processOperands = function(operand, old_operand) {
     console.log('Counting brackets in current input: ' + operand);
     let rightParanthesis, leftParanthesis
     rightParanthesis = leftParanthesis = 0;
@@ -108,6 +110,7 @@ calculator.operations.processOperands = function(operand) {
     console.log(`Initially, formatted operand: ${calculator.formattedOperand}`);
     for (let index = 0; index<calculator.formattedOperand.length; index++) {
         !(calculator.paranthesis.includes(calculator.formattedOperand[index])) ? 0 : calculator.formattedOperand[index] == '(' ? leftParanthesis++ : rightParanthesis++;
+        console.log(`left paranthesis : right paranthesis :${leftParanthesis} : ${rightParanthesis}`);
 
         if ((!isNaN(calculator.formattedOperand[index -1]) || calculator.formattedOperand[index -1] == ')') && !(index === 0) && calculator.formattedOperand[index] == '(' && (calculator.formattedOperand[index] - 1) != 'x') {
             console.log('Before opening bracket is a number: ' + calculator.formattedOperand[index -1]);
@@ -120,9 +123,14 @@ calculator.operations.processOperands = function(operand) {
             calculator.formattedOperand = calculator.formattedOperand.slice(0,index) + ')x' + calculator.formattedOperand.slice(index + 1);
             index++;
         }
+
     };
-    calculator.formattedOperand = (leftParanthesis > rightParanthesis) ? calculator.formattedOperand + ')' : (leftParanthesis < rightParanthesis) ? '(' + calculator.formattedOperand : calculator.formattedOperand;
-    console.log('formatted operand: ' + calculator.formattedOperand);
+    let paranthesisDifference = ((leftParanthesis - rightParanthesis) > 0 ) ? leftParanthesis - rightParanthesis : rightParanthesis - leftParanthesis;
+    for (let i = 0; i < paranthesisDifference; i++) {
+        calculator.formattedOperand = (leftParanthesis > rightParanthesis) ? calculator.formattedOperand + ')' : (leftParanthesis < rightParanthesis) ? '(' + calculator.formattedOperand : calculator.formattedOperand;
+        console.log('formatted operand: ' + calculator.formattedOperand); 
+    }
+    
 
 
     let operators = [];
@@ -135,12 +143,42 @@ calculator.operations.processOperands = function(operand) {
     }
     console.log(operators);
 
+    let strip, rightOperand;
     if (!calculator.states.backSpacePressed && operators.length >= 1) { //To run only if backSpacePressed is off AND there is at least one operator found from above for loop
 
-        let rightOperand = calculator.formattedOperand.slice(operators_id[operators_id.length-1] + 1); //Slice off the portion of operand from AFTER the last operator (reason for +1). This will be used to perform operations
-        let strip = calculator.formattedOperand.slice((operators_id[operators_id.length-1] + 1), (calculator.formattedOperand.length-1)); 
-        //Strip out the portion BETWEEN the last operator & the last character in operand. 
-        //Strip will only contain numbers when there are more than 2 digigts after last operator
+        if (calculator.currentInput == calculator.formattedOperand) {
+            rightOperand = calculator.formattedOperand.slice(operators_id[operators_id.length-1] + 1); //Slice off the portion of operand from AFTER the last operator (reason for +1). This will be used to perform operations
+            strip = calculator.formattedOperand.slice((operators_id[operators_id.length-1] + 1), (calculator.formattedOperand.length-1)); 
+            let rightOperand_rightparantheses, rightOperand_leftparantheses;
+            rightOperand_rightparantheses = rightOperand_leftparantheses = 0;
+            for (let k = 0; k<rightOperand.length; k++) {
+                !(calculator.paranthesis.includes(rightOperand[k])) ? 0 : rightOperand[k] == '(' ? rightOperand_leftparantheses++ : rightOperand_rightparantheses++;
+            }
+            console.log(`l:r = ${rightOperand_leftparantheses} : ${rightOperand_rightparantheses}`);
+            console.log(`Old strip when both equal: ${strip}`);
+            if (rightOperand_rightparantheses) {
+                strip = strip.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses))
+                rightOperand = rightOperand.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses));
+                //Strip out the portion BETWEEN the last operator & the last character in operand. 
+                //Strip will only contain numbers when there are more than 2 digits after last operator
+            }
+            
+        }
+        else { //If bracket ends formatted operand
+            rightOperand = calculator.formattedOperand.slice(operators_id[operators_id.length-1] + 1); //Slice off the portion of operand from AFTER the last operator (reason for +1). This will be used to perform operations
+            strip = calculator.formattedOperand.slice((operators_id[operators_id.length-1] + 1), (calculator.formattedOperand.length-2)); 
+            let rightOperand_rightparantheses, rightOperand_leftparantheses;
+            rightOperand_rightparantheses = rightOperand_leftparantheses = 0;
+            for (let k = 0; k<rightOperand.length; k++) {
+                !(calculator.paranthesis.includes(rightOperand[k])) ? 0 : rightOperand[k] == '(' ? rightOperand_leftparantheses++ : rightOperand_rightparantheses++;
+            }
+            console.log(`Old strip: ${strip}`);
+            strip = strip.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses))
+            rightOperand = rightOperand.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses))
+            
+            
+        }
+        
         console.log('r_operand, strip: '+ `${rightOperand}, ${strip}`);
         let reverseResult = calculator.operations.calculateReverse(calculator.result, strip, operators[operators.length-1]);
         console.log(`Reverse result: ${reverseResult}`);
@@ -149,12 +187,56 @@ calculator.operations.processOperands = function(operand) {
         console.log('new result with operators: ' + calculator.result);
     } 
 
+    else if (calculator.states.backSpacePressed && operators.length >= 1) {
+        if (calculator.currentInput == calculator.formattedOperand) {
+            rightOperand = calculator.formattedOperand.slice(operators_id[operators_id.length-1] + 1); //Slice off the portion of operand from AFTER the last operator (reason for +1). This will be used to perform operations
+            strip = old_operand.slice((operators_id[operators_id.length-1] + 1)); 
+            let rightOperand_rightparantheses, rightOperand_leftparantheses;
+            rightOperand_rightparantheses = rightOperand_leftparantheses = 0;
+            for (let k = 0; k<strip.length; k++) {
+                !(calculator.paranthesis.includes(strip[k])) ? 0 : strip[k] == '(' ? rightOperand_leftparantheses++ : rightOperand_rightparantheses++;
+            }
+            console.log(`l:r = ${rightOperand_leftparantheses} : ${rightOperand_rightparantheses}`);
+            console.log(`Old strip when both equal: ${strip}`);
+            if (rightOperand_rightparantheses) {
+                strip = strip.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses));
+                rightOperand = rightOperand.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses));
+                //Strip out the portion BETWEEN the last operator & the last character in operand. 
+                //Strip will only contain numbers when there are more than 2 digits after last operator
+            }
+            
+        }
+        else { //If bracket ends formatted operand
+            rightOperand = calculator.formattedOperand.slice(operators_id[operators_id.length-1] + 1); //Slice off the portion of operand from AFTER the last operator (reason for +1). This will be used to perform operations
+            strip = old_operand.slice((operators_id[operators_id.length-1] + 1)); 
+            let rightOperand_rightparantheses, rightOperand_leftparantheses;
+            rightOperand_rightparantheses = rightOperand_leftparantheses = 0;
+            for (let k = 0; k<strip.length; k++) {
+                !(calculator.paranthesis.includes(strip[k])) ? 0 : strip[k] == '(' ? rightOperand_leftparantheses++ : rightOperand_rightparantheses++;
+            }
+            console.log(`Old strip: ${strip}`);
+            if (rightOperand_rightparantheses) {
+                strip = strip.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses));
+                rightOperand = rightOperand.slice(rightOperand_leftparantheses, rightOperand.length - (rightOperand_rightparantheses));
+            }
+            
+        }
+    
+        console.log('r_operand, strip: '+ `${rightOperand}, ${strip}`);
+        let reverseResult = calculator.operations.calculateReverse(calculator.result, strip, operators[operators.length-1]);
+        console.log(`Reverse result: ${reverseResult}`);
+        //Reverse operation carried out on the number(s) found in strip. If strip is empty function will choose to do nothing i.e result will be unchanged
+        calculator.operations.calculate(reverseResult, rightOperand, operators[operators.length-1]);
+        console.log('new result with operators: ' + calculator.result);
+        calculator.states.backSpacePressed = false;
+    }
+
     else if (operators.length == 0) {
         calculator.result = +calculator.formattedOperand;
         console.log('new result, no operators: ' + calculator.result);
     } 
-
-
+    
+    calculator.operations.displayResult(calculator.result);
 };
 
 calculator.operations.calculate = function(res, r_operand, oprtr){
@@ -163,7 +245,7 @@ calculator.operations.calculate = function(res, r_operand, oprtr){
         console.log('do nothing operation');
     }
     else if (r_operand != '') {//If characters after last operator, the right operation is picked by the Switch
-        //alert('Multiple right operand: ' + r_operand); for test
+        console.log('do something operation');
         switch (oprtr) {
             case 'x':
                 calculator.result = +res * +r_operand;
@@ -181,7 +263,7 @@ calculator.operations.calculate = function(res, r_operand, oprtr){
                 calculator.result = res ** +r_operand;
                 return;
             case '\u221A':
-                calculator.result = res ** (0.5);
+                calculator.result = res * ((+r_operand)**0.5);
                 return;
             default:
                 break;
@@ -217,12 +299,34 @@ calculator.operations.calculateReverse = function(res, r_operand, oprtr){
                 calculator.result = res ** (1/+r_operand);
                 return calculator.result;
             case '\u221A':
-                calculator.result = res ** (2);
+                calculator.result = res / ((+r_operand)**0.5);
                 return calculator.result;
             default:
                 break;
         }
     }
+}
+
+calculator.operations.backSpace = function(){
+    calculator.states.backSpacePressed = true;
+    let old_entry = calculator.formattedOperand;
+    calculator.currentInput = calculator.currentInput.slice(0, (calculator.currentInput.length - 1)); // Last character (operator or number) is chopped off here
+
+    if (calculator.currentInput == 0) {// If backspace empties userNum, or if remaining userNum is zero, this block runs
+        //alert('backspaced & dead'); for test
+        calculator.currentInput = '0';
+        calculator.operations.displayInput(calculator.currentInput);
+        calculator.result = 0;
+        calculator.operations.displayResult(calculator.result);
+    }
+
+    else {
+        //alert('old number: ' + old_userNum); for test
+        //alert('backspaced but still vibing') for test
+        calculator.operations.displayInput(calculator.currentInput);
+        calculator.operations.processOperands(calculator.currentInput, old_entry); //passes old_userNum to reverse operation on the number before backSpace was pressed
+        calculator.operations.displayResult(calculator.result);
+    }   
 }
 
 calculator.addEventListeners();
