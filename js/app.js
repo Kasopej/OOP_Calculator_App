@@ -32,7 +32,9 @@ calculator.addEventListeners = function(){
         console.log('Adding operator button event listeners' + index);
         operatorBtn.addEventListener('click', calculator.operations.addOperator.bind(calculator));
     });
-    this.controls.backSpaceButton.addEventListener('click', calculator.operations.backSpace.bind(calculator))
+    this.controls.backSpaceButton.addEventListener('click', calculator.operations.backSpace.bind(calculator));
+    this.controls.clearButton.addEventListener('click', calculator.operations.clear.bind(calculator));
+    this.controls.enterButton.addEventListener('click', calculator.operations.enter.bind(calculator))
 };
 
 
@@ -229,11 +231,14 @@ calculator.operations.processOperands = function(operand, old_operand) {
         calculator.operations.calculate(reverseResult, rightOperand, operators[operators.length-1]);
         console.log('new result with operators: ' + calculator.result);
         calculator.states.backSpacePressed = false;
+        calculator.states.decimalActive = rightOperand.includes('.') ? true : false;
     }
 
     else if (operators.length == 0) {
         calculator.result = +calculator.formattedOperand;
         console.log('new result, no operators: ' + calculator.result);
+        calculator.states.backSpacePressed = false;
+        calculator.states.decimalActive = calculator.formattedOperand.includes('.') ? true : false;
     } 
     
     calculator.operations.displayResult(calculator.result);
@@ -327,6 +332,18 @@ calculator.operations.backSpace = function(){
         calculator.operations.processOperands(calculator.currentInput, old_entry); //passes old_userNum to reverse operation on the number before backSpace was pressed
         calculator.operations.displayResult(calculator.result);
     }   
+}
+
+calculator.operations.clear = function(){
+    calculator.states.decimalActive = false;
+    calculator.currentInput = '0';
+    calculator.result = 0;
+    calculator.operations.displayInput(calculator.currentInput);
+    calculator.operations.displayResult(calculator.result);
+};
+
+calculator.operations.enter = function(){
+    
 }
 
 calculator.addEventListeners();
